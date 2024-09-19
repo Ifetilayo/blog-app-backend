@@ -71,4 +71,6 @@ app.post("/api/articles/:name/comments", async (req, res) => {
   } else res.send(`${name} article doesn\'t exist`);
 });
 
-connectToDb(() => app.listen(8000, () => console.log("Server listening!!!")));
+app.listen(process.env.PORT || 8000, () => {
+  console.log(`Go catch the server at PORT ${process.env.PORT || 8000}`);
+});
