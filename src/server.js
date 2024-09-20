@@ -26,7 +26,7 @@ app.use(async (req, res, next) => {
 
   if (authtoken) {
     try {
-      req.user = await admin.auth().verifyIdToken();
+      req.user = await admin.auth().verifyIdToken(authtoken);
     } catch (e) {
       return res.sendStatus(400);
     }
@@ -39,7 +39,6 @@ app.use(async (req, res, next) => {
 
 app.get("/api/articles/:name", async (req, res) => {
   const { name } = req.params;
-
   const { uid } = req.user;
 
   const article = await db.collection("articles").findOne({ name: name });
@@ -62,21 +61,20 @@ app.use((req, res, next) => {
 
 app.put("/api/articles/:name/upvote", async (req, res) => {
   const { name } = req.params;
-
   const { uid } = req.user;
 
   const article = await db.collection("articles").findOne({ name: name });
 
   if (article) {
     const upvoteIds = article.upvoteIds || [];
-    const canUpvote = uid && !upvoteIds.include(uid);
+    const canUpvote = uid && !upvoteIds.includes(uid);
 
     if (canUpvote) {
       await db.collection("articles").updateOne(
         { name },
         {
           $inc: { upvotes: 1 },
-          $push: { upvoteIds, uid },
+          $push: { upvoteIds: uid },
         }
       );
     }
@@ -86,7 +84,7 @@ app.put("/api/articles/:name/upvote", async (req, res) => {
       .findOne({ name: name });
     res.json(upadatedArticle);
   } else {
-    res.sendStatus(404);
+    res.sendStatus(400);
   }
 });
 
